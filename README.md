@@ -1,33 +1,38 @@
-# solana-dev-env
+# Auction Space
 
-Setting up a Solana development environment isn't particularly straightforward, and maintaining it over time on multiple laptops isn't something I particularly want to do. I'd far rather have an dev environment that builds automatically and doesn't require me spending a ton of time to keep it running
+## *Trustless auctions built on Solana*
 
-## gitpod environment
+Traditionally, web advertising is handled by an intermediary, such as Google Ads, which takes a cut of the revenue. Auction Space is a trustless auctioning platform that allows advertisers to bid on ad space directly from the publisher. This allows publishers to maximize their revenue and advertisers to minimize their costs, with no uncertainty about the fairness of the auction.
 
-Opening this repo inside gitpod (i.e. https://gitpod.io/#/https://github.com/monch1962/solana-dev-env) will trigger the build of a Solana dev/test environment. It will take about 20 minutes(!) to install everything, but once that's done you can work in a sandboxed environment inside your browser.
+## Why trustless?
 
-You won't be able to push anything to this repo, so it's probably best if you fork it once you're convinced it's useful for you, then work in your own forked environment where you can save your code changes.
+- This auction system is meant to prevent the publisher from being able to manipulate the auction in their favor. However, it does not prevent the publisher from simply not displaying the ad, or displaying it in a way that is not visible to the user.
+    - For this reason, we provide the methods `advertiserBackout()` and `auctionBackout()`, which allow the advertiser and publisher to abort the agreement at any time.
 
-Note that you'll need to run `. ~/.profile` after the environment has been built, to get the `solana` CLI onto the path
+- For example, an advertiser might want to abort the agreement if they find out that the publisher is not displaying their ad. Or, with bad intentions, they might want to win an auction and then abort the agreement, preventing the publisher from displaying any ads at all (a denial of service attack).
+    - We design this system such that if the advertiser aborts the aggreement, they they will lose some small deposit (which is returned at the end if the ad is not aborted). This is to disincentivize advertisers from aborting the agreement. However, if we hand this penalty to the publisher, then the publisher could just not display the ad until the advertiser aborts the agreement, and then collect the penalty. 
+    - Instead, we keep the penalty in a personal vault (if the advertiser aborts the agreement, the penalty is sent to the vault)
+    - Money from this vault can be collected gradually by fully completing auctions (i.e. neither side aborting the agreement)
 
-If you ever want to rebuild this environment (e.g. to update versions of all the tools), you can run `gp rebuild` inside gitpod, then go get a leisurely coffee while everything rebuilds
+- The same logic applies to the publisher, who may want to abort the agreement if they are unhappy with the ad that the advertiser has uploaded. With bad intentions, they might want to win an auction and then abort the agreement immediately. 
+    - Similarly, we design this system such that if the publisher aborts the aggreement, they they will lose some small deposit. This is to disincentivize publishers from aborting the agreement. Over time with successful auctions, the publisher can collect money from their vault.
 
-## Docker environment
+## How to use
 
-You can either
+### For publishers
 
-`$ docker pull monch1962/solana-dev:latest`
+1. Create a publisher account with `newPublisher()`
+2. Create an auction with `createAuction()`, and start it with `activateAuction(auction_end: u64, effect_start: u64, effect_end: u64)`
+3. At any time, you can abort the agreement with `auctionBackout()`
 
-or 
+### For advertisers
 
-`$ docker build -t solana-dev docker`
+1. Create an advertiser account with `newAdvertiser()`
+2. Bid on an auction with `bid(amount)`
+3. If you win the auction, you can upload your ad with `uploadAd()`
+4. If someone else outbids you, your bid will be refunded automatically
+5. If you win an auction, you can abort the agreement with `advertiserBackout()`
 
-to create a Docker container that contains a complete Solana dev environment
+## How it's built
 
-You can then run this container using
-
-`$ docker run --rm -ti solana-dev:latest /bin/bash`
-
-## VS Code devcontainer
-
-(instructions to follow))
+Auction Space is built on Solana, written in Rust using the [Anchor](https://www.anchor-lang.com/) framework, and tests are in TypeScript.
