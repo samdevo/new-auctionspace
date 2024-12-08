@@ -1,24 +1,14 @@
 {
-	"name": "AnchorDev",
-	"build": {
-	  "dockerfile": "Dockerfile",
-	  "context": "."
-	},
-	"customizations": {
-		"vscode": {
-			"settings": {
-				"terminal.integrated.defaultProfile.linux": "bash"
-			},
-			"extensions": [
-				"rust-lang.rust-analyzer",
-	  			"esbenp.prettier-vscode",
-	 			"ms-azuretools.vscode-docker"
-			]
-		}
-	},
-	"postCreateCommand": ". ~/.bashrc",
-	"features": {
-	  "ghcr.io/devcontainers/features/docker-in-docker:1": {}
-	}
-  }
-  
+    "build": {
+      "context": ".",
+      "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+          "extensions": [
+            "hbenl.vscode-test-explorer", 
+            "hbenl.test-adapter-converter"
+          ]
+        }
+    }
+}
